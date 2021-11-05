@@ -1,0 +1,48 @@
+solid groundAndWall
+ facet normal 0 1 0
+  outer loop
+   vertex 15000 -500 0
+   vertex 0 -500 0
+   vertex 0 -500 300
+  endloop
+ endfacet
+ facet normal 0 1 -0
+  outer loop
+   vertex 15000 -500 0
+   vertex 0 -500 300
+   vertex 15000 -500 300
+  endloop
+ endfacet
+endsolid groundAndWall
+solid nozzel
+ facet normal 0 -1 0
+  outer loop
+   vertex -150 0 0
+   vertex 150 0 0
+   vertex 150 0 300
+  endloop
+ endfacet
+ facet normal 0 -1 0
+  outer loop
+   vertex -150 0 300
+   vertex -150 0 0
+   vertex 150 0 300
+  endloop
+ endfacet
+endsolid nozzel
+solid inlet
+ facet normal -1 -0 0
+  outer loop
+   vertex 150 0 300
+   vertex 150 -2000 0
+   vertex 150 -2000 300
+  endloop
+ endfacet
+ facet normal -1 0 -0
+  outer loop
+   vertex 150 0 300
+   vertex 150 0 0
+   vertex 150 -2000 0
+  endloop
+ endfacet
+endsolid inlet

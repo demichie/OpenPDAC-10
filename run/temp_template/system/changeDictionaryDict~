@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    front 
+    {
+        inGroups         1  (frontAndBack);
+    }
+    back
+    {
+        inGroups         1  (frontAndBack);
+    }
+    groundAndWall
+    {
+      inGroups      (outOrIn  allFaces);
+    }
+    axis
+    {
+      inGroups	    (outOrIn  allFaces);
+    }    
+    top
+    {
+        inGroups	    (outOrIn allFaces);
+    }
+    side	
+    {
+        inGroups	    (outOrIn allFaces);
+    }
+    inlet
+      {
+	inGroups          1  (allFaces);
+      }	
+
+// ************************************************************************* //

@@ -380,19 +380,6 @@ else
         rho = fluid.rho();
         #include "gh.H"
         ph_rgh = p - rho*gh;
-
-    /*volScalarField ph_rgh
-    (
-        IOobject
-        (
-            "ph_rgh",
-            runTime.timeName(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh
-    );*/
 }    
 
     

@@ -11,6 +11,8 @@ phaseSystem& fluid = fluidPtr();
 phaseSystem::phaseModelList& phases = fluid.phases();
 
 volScalarField& p = phases[0].thermoRef().p();
+volScalarField& T1 = phases[0].thermoRef().T();
+volScalarField& T2 = phases[1].thermoRef().T();
 
 
 volScalarField rho
@@ -52,11 +54,19 @@ if (fluid.found("pMin"))
 }
 
 
+volScalarField ph_rgh
+    (
+        IOobject
+        (
+            "ph_rgh",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh
+    );
 #include "phrghEqn.H"
-
-
-Info << "pRef " << pRef.value() << endl;
-Info << "hRef " << hRef.value() << endl;
 
 Info<< "Reading field p_rgh\n" << endl;
 volScalarField p_rgh
@@ -84,7 +94,7 @@ Info << "hRef " << hRef.value() << endl;
 
 // this field has been written by phrghEqn.H, 
 // if hydrostaticInitialisation is true
-volScalarField ph_rgh
+/*volScalarField ph_rgh
 (
     IOobject
     (
@@ -95,7 +105,7 @@ volScalarField ph_rgh
         IOobject::NO_WRITE
     ),
     mesh
-);
+);*/
 
 p_rgh = ph_rgh;
 

@@ -43,7 +43,9 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
 
        	forAll (ph.boundaryField(), bdryID)     
    		{    		
-   			if ( ( mag(mesh.Sf().boundaryField()[bdryID][0]^g).value() == 0.0 ) 
+	                Info << "magSfBdry" << mesh.Sf().boundaryField()[bdryID][0] << endl;
+   			//if ( ( mag(mesh.Sf().boundaryField()[bdryID][0]^g).value() == 0.0 ) 
+   			if ( ( mag(mesh.Sf().boundaryField()[bdryID][0]^g).value() <= 1.0e-8*mag(mesh.Sf().boundaryField()[bdryID][0])*mag(g).value() ) 
    				&& ( ph.boundaryField()[bdryID].type() == "fixedValue" ) )
    			{
    			    nFixValPatches +=1;
@@ -58,6 +60,8 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
 
    			}
 		}
+
+	        Info << "nFixValPatches " << nFixValPatches << endl;
 
 		if ( nFixValPatches != 1 )
 		{
@@ -252,14 +256,14 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
    			}
 		}
         
-        Info << "pBdry" << ph.boundaryField()[bdryPref][0] << endl;
+        Info << "pBdry " << ph.boundaryField()[bdryPref][0] << endl;
         
         hRef.value() = 0.0;
         Info << "hRef " << hRef.value() << endl;
         
         #include "gh.H"
     
-        volScalarField& ph_rgh = regIOobject::store
+        /*volScalarField& ph_rgh = regIOobject::store
         (
             new volScalarField
             (
@@ -273,18 +277,19 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
                 ),
                 mesh
             )
-        );
+        );*/
 
         // the new hydrostatic pressure profile is used to update the density field 		
         p = ph;
         fluid.correctThermo();
         rho = fluid.rho();
+
         	
         // we initialize the field ph_rgh with the computed pressure and density
         ph_rgh = ph - rho*gh;
        
         // Find the label of the patch that shall be changed
-        label patchID = mesh.boundaryMesh().findPatchID("top");
+        label patchID = mesh.boundaryMesh().findPatchID("outlet");
         
         // we change the fixed value b.c. of ph_rgh at the top face, in order to be 
         // consistent with the values of ph, rho and gh
@@ -362,12 +367,21 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
         ph_rgh.write(); 
         p.write();
         rho.write(); 
+	T1.write();
+	T2.write();
+        p = ph_rgh + rho*gh;
         
     }
 }
 else
 {
-    volScalarField ph_rgh
+	p.read();
+        fluid.correctThermo();
+        rho = fluid.rho();
+        #include "gh.H"
+        ph_rgh = p - rho*gh;
+
+    /*volScalarField ph_rgh
     (
         IOobject
         (
@@ -378,7 +392,7 @@ else
             IOobject::NO_WRITE
         ),
         mesh
-    );
+    );*/
 }    
 
     

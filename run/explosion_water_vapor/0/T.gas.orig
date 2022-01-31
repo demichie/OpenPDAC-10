@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.0                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      T.gas;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   #codeStream
+{
+    codeInclude
+    #{
+        #include "fvCFD.H"
+    #};
+
+    codeOptions
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude \
+        -I$(LIB_SRC)/meshTools/lnInclude
+    #};
+
+    //libs needed to visualize BC in paraview
+    codeLibs
+    #{
+        -lmeshTools \
+	-lfiniteVolume
+    #};
+
+    code
+    #{
+        const IOdictionary& d = static_cast<const IOdictionary&>(dict);
+        const fvMesh& mesh = refCast<const fvMesh>(d.db());
+        scalarField T(mesh.nCells(), 0.);
+
+	scalar h0 = 0.0;
+	scalar T0 = 293.0;
+
+	scalar h1 = 10000.0;
+	scalar T1 = 228.0;
+
+	scalar h2 = 20000.0;
+	scalar T2 = 228.0;
+
+
+        forAll(T, i)
+        {
+            const scalar h = mesh.C()[i][1];
+            
+            if ( h <= h1 )
+               {
+               T[i] = T0 + (h-h0)/(h1-h0)*(T1-T0);
+               }
+            else
+               { 
+               T[i] = T1 + (h-h1)/(h2-h1)*(T2-T1);
+               }
+        }
+
+        writeEntry(os, "", T);
+    #};
+};
+
+
+boundaryField
+{
+    wall
+    {
+        type            zeroGradient;
+    }
+    outOrIn
+    {
+        //type            inletOutlet;
+        //phi             phi.gas;
+        //inletValue      uniform 293;
+        //value           uniform 293;
+        type            zeroGradient;
+
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+
+}
+
+
+// ************************************************************************* //

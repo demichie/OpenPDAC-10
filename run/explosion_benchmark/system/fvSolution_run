@@ -134,6 +134,7 @@ PIMPLE
     hydrostaticInitialisation no;
     nHydrostaticCorrectors 50;
     faceMomentum     yes;
+    partialElimination true;
 }
 
 relaxationFactors

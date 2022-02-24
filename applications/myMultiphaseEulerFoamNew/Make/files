@@ -1,4 +1,4 @@
-myMultiphaseEulerFoamNew.C
+OpenPDAC.C
 
-EXE = $(FOAM_USER_APPBIN)/myMultiphaseEulerFoamNew
+EXE = $(FOAM_USER_APPBIN)/OpenPDAC
 

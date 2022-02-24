@@ -10,11 +10,11 @@ cp 0/rho.orig 0/rho
 
 FOR PARALLEL RUN:
 decomposePar
-mpirun -np 8 myMultiphaseEulerFoamNew -parallel
+mpirun -np 8 OpenPDAC -parallel
 reconstructPar -newTimes
 
 FOR SCALAR RUN:
-myMultiphaseEulerFoamNew
+OpenPDAC
 
 
 

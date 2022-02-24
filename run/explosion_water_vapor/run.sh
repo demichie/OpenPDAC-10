@@ -15,11 +15,11 @@ cp system/fvSolution_init system/fvSolution
 
 #FOR PARALLEL RUN:
 #decomposePar
-#mpirun -np 8 myMultiphaseEulerFoamNew -parallel
+#mpirun -np 8 OpenPDAC -parallel
 #reconstructPar -newTimes
 
 #FOR SCALAR RUN:
-myMultiphaseEulerFoamNew
+OpenPDAC
 
 setFields
 cp system/controlDict_run system/controlDict
@@ -27,11 +27,11 @@ cp system/fvSolution_run system/fvSolution
 
 #FOR PARALLEL RUN:
 #decomposePar
-#mpirun -np 8 myMultiphaseEulerFoamNew -parallel
+#mpirun -np 8 OpenPDAC -parallel
 #reconstructPar -newTimes
 
 #FOR SCALAR RUN:
-myMultiphaseEulerFoamNew
+OpenPDAC
 
 
 

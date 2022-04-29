@@ -272,7 +272,7 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
         ph_rgh = ph - rho*gh;
        
         // Find the label of the patch that shall be changed
-        label patchID = mesh.boundaryMesh().findPatchID("outlet");
+        label patchID = mesh.boundaryMesh().findPatchID("top");
         
         // we change the fixed value b.c. of ph_rgh at the top face, in order to be 
         // consistent with the values of ph, rho and gh

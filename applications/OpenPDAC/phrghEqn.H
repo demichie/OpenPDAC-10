@@ -210,6 +210,7 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
         );
             
         for (label i=0; i<nCorr; i++)
+        //for (label i=0; i<nCorr; i++)
         { 
             p = ph;
        	    fluid.correctThermo();
@@ -305,8 +306,8 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
         // pressure field computed above.
         // This should help the convergence with large domains.
                 
-        //for (label i=0; i<nCorr; i++)
-        for (label i=0; i<0; i++)
+        for (label i=0; i<nCorr; i++)
+        //for (label i=0; i<0; i++)
         {
             surfaceScalarField rhof("rhof", fvc::interpolate(rho));
             surfaceScalarField phig

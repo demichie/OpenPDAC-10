@@ -12,27 +12,58 @@ import os.path
 import time
 import pandas as pd
 
-DEM_file = 'demvulc2m.asc'
-
-resample = 10  # subsampling factor of the original DEM
-dist0 = 20.0  # semi-width of the fissure/radius of the cylinder
-enne = 2.0  # shape parameter (1 linear, 2 spherical)
-depth = 50.0  # depth of the fissure
-nlevels = 5  # levels of refinements of the subsampled grid
-
-xb = 0.0  # horizontal x-translation of the base of the fissure/conduit
-yb = 0.0  # horizontal y-translation of the base of the fissure/conduit
-
-xc = 496395  # x of first point of fissure/x-center of cylinder (UTM)
-yc = 4251735  # y of first point of fissure/y-center of cylinder (UTM)
-
-# FOR CYLINDRICAL FISSURE
-line = LineString([(xc, yc), (xc, yc)])
-
-# FOR LINEAR FISSURE
-# line = LineString([(xc, yc), (xc+20, yc+10), (xc+40, yc+15)])
+from ASCtoSTLdict import *
 
 
+
+def saveDicts(xmin,xmax,ymin,ymax,Zinit,delta_mesh,path):
+
+    # Define the 3D block and compute the number of cells in each direction
+    nx = int(np.ceil((xmax-xmin)/delta_mesh))
+    ny = int(np.ceil((ymax-ymin)/delta_mesh))
+    zmin = np.min(np.min(Zinit)) - offset_mesh
+    zmax = np.max(np.max(Zinit)) + z_atm
+    nz = int(np.ceil((zmax-zmin)/delta_mesh))
+    
+    # In order to write blockMeshDict dictionary, write the vertices of the
+    # block and the discretization
+    fid1 = open('blockMesh.mod','w')
+    fid1.write('vertices\n')
+    fid1.write('(\n')
+    fid1.write('(%f %f %f) \n' % (xmin,ymin,zmin))
+    fid1.write('(%f %f %f) \n' % (xmax,ymin,zmin))
+    fid1.write('(%f %f %f) \n' % (xmax,ymax,zmin))
+    fid1.write('(%f %f %f) \n' % (xmin,ymax,zmin))
+    fid1.write('(%f %f %f) \n' % (xmin,ymin,zmax))
+    fid1.write('(%f %f %f) \n' % (xmax,ymin,zmax))
+    fid1.write('(%f %f %f) \n' % (xmax,ymax,zmax))
+    fid1.write('(%f %f %f) \n' % (xmin,ymax,zmax))
+    fid1.write(');\n\n')
+    fid1.write('blocks\n')
+    fid1.write('(\n')
+    fid1.write('    hex (0 1 2 3 4 5 6 7) (%d %d %d) simpleGrading (1 1 1) \n' % (nx,ny,nz))
+    fid1.write(');\n\n')
+    fid1.close()
+
+    # Write blockMeshDict dictionary by concatenating the header with the other
+    # parts. Save it as path/system/blockMeshDict
+    path_system = path + 'system/'
+    command = "cat templates/blockMesh.start blockMesh.mod templates/blockMesh.end > " + path_system + "blockMeshDict"
+
+
+    # Call the operating system to execute the specified commands
+    os.system(command)
+    os.system('rm blockMesh.mod')
+    
+    fout = open((path_system + 'snappyHexMeshDict'),'w')
+    with open('./templates/snappyHexMeshDict.template') as f:
+	    content = f.readlines()
+	    textdata = [x.strip() for x in content]
+    for i in range(len(textdata)): 
+        textdata[i] = textdata[i].replace('xxxxxx', str(zmax-10.0))
+        fout.write('%s\n' % textdata[i])
+    fout.close()
+    
 # Print iterations progress
 def printProgressBar(iteration,
                      total,
@@ -54,7 +85,7 @@ def printProgressBar(iteration,
     str_format = "{0:." + str(decimals) + "f}"
     percents = str_format.format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
-    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+    bar = 'X' * filled_length + '-' * (bar_length - filled_length)
 
     sys.stdout.write('\r%s |%s| %s%s %s' %
                      (prefix, bar, percents, '%', suffix)),
@@ -63,6 +94,8 @@ def printProgressBar(iteration,
         sys.stdout.write('\n')
     sys.stdout.flush()
 
+
+line = LineString(points)
 
 print('Reading DEM file: ' + DEM_file)
 # Parse the topography header
@@ -81,16 +114,40 @@ DEM = pd.read_table(DEM_file, delim_whitespace=True, header=None,
 DEM = np.flipud(DEM)
 DEM[DEM == nd] = 0.0
 
-xinit = np.linspace(0, (cols - 1) * cell, cols)
-yinit = np.linspace(0, (rows - 1) * cell, rows)
+xinit = np.linspace(0, (cols - 1) * cell, cols) - xc
+yinit = np.linspace(0, (rows - 1) * cell, rows) - yc
+
+xinit = xs_DEM - xc
+yinit = ys_DEM - yc
+ 
+xmin = np.amin(xinit)+offset_mesh
+xmax = np.amax(xinit)-offset_mesh
+
+print('xmin,xmax',xmin,xmax)
+
+ymin = np.amin(yinit)+offset_mesh
+ymax = np.amax(yinit)-offset_mesh
+
+print('ymin,ymax',ymin,ymax)
 
 Xinit, Yinit = np.meshgrid(xinit, yinit)
 Zinit = DEM
 
+xmin = np.maximum(xmin,-0.5 * domain_size_x)
+xmax = np.minimum(xmax,0.5 * domain_size_x)
+ymin = np.maximum(ymin,-0.5 * domain_size_y)
+ymax = np.minimum(ymax,0.5 * domain_size_y)
+
+if saveDicts_flag:
+
+    saveDicts(xmin,xmax,ymin,ymax,Zinit,delta_mesh,path)
+
 # translate the linestring (relative reference system with (lx,ly)=(0,0))
-line = translate(line, -lx, -ly)
+line = translate(line, -xc, -yc)
 
 bb = line.bounds
+
+print('bb',bb)
 
 # interpolate with values from original fine grid
 f = interpolate.interp2d(xinit, yinit, Zinit, kind='linear')
@@ -213,15 +270,12 @@ for ilevel in range(nlevels):
             z_check.append(float(z))
 
         i += 1
-
+        
     # bounding box of new refinement level
     xmin_bb = bb[0] - dist_lev
     ymin_bb = bb[1] - dist_lev
     xmax_bb = bb[2] + dist_lev
     ymax_bb = bb[3] + dist_lev
-
-    # print('xmin_bb,xmax_bb',xmin_bb,xmax_bb)
-    # print('ymin_bb,ymax_bb',ymin_bb,ymax_bb)
 
     idx_min = np.searchsorted(x0, xmin_bb, side="left") - 1
     idx_max = np.searchsorted(x0, xmax_bb, side="left")
@@ -322,19 +376,6 @@ outer_tri_list = list(set(range(tri_simpl.shape[0])) - set(inner_tri_list))
 
 tri_out = tri_simpl[outer_tri_list, :]
 
-"""
-fig = plt.figure()
-plt.triplot(points[:,0], points[:,1], tri.simplices)
-plt.plot(points[:,0], points[:,1], 'o')
-
-x, y = line.xy
-plt.plot(x, y, 'k')
-
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(x_new,y_new,z_new)
-"""
-
 # original elevation 3D point refined grid
 vertices_old = np.column_stack((x_old, y_old, z_old))
 
@@ -351,7 +392,7 @@ for i, f in enumerate(faces):
     for j in range(3):
         surface.vectors[i][j] = vertices[f[j], :]
 
-surface.save('surface.stl')
+surface.save('../constant/triSurface/surface.stl')
 
 # Create the inside mesh
 print('Saving in stl')
@@ -363,7 +404,7 @@ for i, f in enumerate(faces):
     for j in range(3):
         surface.vectors[i][j] = vertices[f[j], :]
 
-surface.save('surface_in.stl')
+surface.save('../constant/triSurface/surface_in.stl')
 
 # Create the outside mesh
 print('Saving out stl')
@@ -374,7 +415,7 @@ for i, f in enumerate(faces):
     for j in range(3):
         surface.vectors[i][j] = vertices[f[j], :]
 
-surface.save('surface_out.stl')
+surface.save('../constant/triSurface/surface_out.stl')
 
 # Create the inside mesh closed on top
 print('Saving closed in stl')
@@ -387,6 +428,6 @@ for i, f in enumerate(faces):
         surface.vectors[i][j] = vertices[f[j], :]
         surface.vectors[i + faces.shape[0]][j] = vertices_old[f[j], :]
 
-surface.save('surface_in_closed.stl')
+surface.save('../constant/triSurface/surface_in_closed.stl')
 
 # plt.show()

@@ -77,8 +77,39 @@ int main(int argc, char *argv[])
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
+    
+    scalar startTime_ = runTime.startTime().value();
+    scalar deltaT = runTime.deltaT().value();
+
+    // set small value for deltaT to evolve particles    
+    runTime.setDeltaT 
+                 ( 
+                    1.e-5*deltaT
+                 );
+    // increase time iterator            
+    runTime++;
+    
+    // evolve particle cloud
+    clouds.evolve();
+
+     // restore startTime
+    runTime.setTime
+                ( 
+                    startTime_,
+                    startTime_
+                );
+                
+    // restore deltaT            
+    runTime.setDeltaT 
+                 ( 
+                    deltaT
+                 );
+
+    // write everything (including lagrangian)
+    runTime.writeNow();
 
     while (pimple.run(runTime))
+    
     {
         #include "readDyMControls.H"
 
@@ -100,7 +131,7 @@ int main(int argc, char *argv[])
             #include "CourantNo.H"
             #include "setDeltaT.H"
         }
-
+        
         runTime++;
         Info<< "Time = " << runTime.timeName() << nl << endl;
 

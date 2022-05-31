@@ -15,6 +15,10 @@ from matplotlib.colors import LightSource
 from matplotlib.colors import BoundaryNorm
 import matplotlib.ticker as ticker
 
+toll = 10
+step_dens = 50.0
+    
+
 def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
     b = int(b)
@@ -100,11 +104,6 @@ def main():
  
     ls = LightSource(azdeg=45, altdeg=45)
 
-    
-    # plt.xlim([plt_xmin, plt_xmax])
-    # plt.ylim([plt_ymin, plt_ymax])
-
-    
     current_dir = os.getcwd()
     current_dir_name = current_dir.split('/')[-1]
 
@@ -114,11 +113,14 @@ def main():
     file_idx = []
     for filename in files:
         # print(filename)
-        file_idx.append(int(filename.split('_')[1].split('.')[0]))
+        file_idx.append(float(filename.split('_')[1].rsplit('.', 1)[0]))
         
-        
+    times = [float(x) for x in file_idx]  
+      
     sorted_files = [files[i] for i in np.argsort(file_idx)]
-    # print(sorted_files)
+    sorted_times = [times[i] for i in np.argsort(file_idx)]
+    
+    print('Times read',sorted_times)
 
     full_filename = working_dir+'/'+sorted_files[1]
 
@@ -145,7 +147,68 @@ def main():
             matr[i,4:7,k] = A[k,:,i]
             matr[i,7,k] = LA.norm(matr[i,4:7,k])
     
+    
+    # Determine impact time for all clasts as the first time index
+    # such that velocity (in norm) falls below toll tolerance and, 
+    # in the previous time step, velocity along z-axis is negative. 
+    # Otherwise, set impact time to be zero  
+    
+    t_impact = np.zeros((nballistics,1)).astype(int) 
+    time_impact = np.zeros((nballistics,1)).astype(float) 
 
+    for s in range(nballistics):
+        for l in range(3, n_times):
+            if (matr[l,-1,s] < toll and matr[l-1,-2,s] < 0):
+                t_impact[s] = int(l)
+                time_impact[s] = sorted_times[l]
+                print(s,l,time_impact[s])
+                break
+
+    ## Calculate mean and maximum velocities along particle trajectory
+    velocities = np.zeros((nballistics, 4))
+    for k in range(nballistics):
+        velocities[k,0] = int(k)
+        velocities[k,1] = d[k]
+        velocity = matr[:int(t_impact[k])+1, -1, k]
+        mean_velocity = np.mean(velocity)
+        velocities[k,2] = mean_velocity 
+        max_velocity = np.amax(velocity)
+        velocities[k,3] = max_velocity
+        
+    C = ['index','diameter [m]','mean vel [m/s]','max vel [m/s]']
+    df = pd.DataFrame(velocities) 
+    df[0] = df[0].astype(int)
+    df.to_csv("velocities.csv", header=C,index=False) 
+
+    # Determine the mass of each block 
+    r = d/2 
+    V = 4/3*(np.pi)*(r**3) 
+    m = rho*V 
+    K = np.zeros((nballistics,1)) 
+
+    mat1 = np.zeros((nballistics, 9))
+
+    for s in range(nballistics):
+        mat1[s,0] = s
+        if t_impact[s] != 0:
+            
+            K[s] = 0.5*m[s]*(mat1[s,2]**2) 
+            
+            mat1[s,1] = d[s]
+            mat1[s,2] = rho[s]
+            mat1[s,3] = time_impact[s]
+            mat1[s,4] = matr[t_impact[s],1,s]
+            mat1[s,5] = matr[t_impact[s],2,s]
+            mat1[s,6] = matr[t_impact[s],3,s]
+            mat1[s,7] = matr[t_impact[s]-1,-1,s]
+            mat1[s,8] = K[s]
+            
+    C = ['index','diameter [m]','density [kg/m3]','[impact time [s]','x [m]','y [m]','z [m]','impact velocity [m/s]','landing energy [J]']
+
+    df = pd.DataFrame(mat1) 
+    df[0] = df[0].astype(int)
+    df.to_csv("impacts.csv", header=C,index=False) 
+            
     x = np.array(position[:,0]) 
     y = np.array(position[:,1]) 
     diam = np.array(d)
@@ -177,8 +240,7 @@ def main():
 
         i = int(np.ceil(i))		
         j = int(np.ceil(j))
-        
-        
+                
         count_ballistic_class[-1,j,i] +=1        
         k = int(np.argwhere(di==diams)[0]) 
         count_ballistic_class[k,j,i] +=1        

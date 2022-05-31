@@ -72,9 +72,6 @@ def readASC(DEM_file,xc,yc):
     DEM = np.flipud(DEM)
     DEM[DEM == nd] = 0.0
 
-    xinit = np.linspace(0, (cols - 1) * cell, cols) - xc
-    yinit = np.linspace(0, (rows - 1) * cell, rows) - yc
-
     xinit = xs_DEM - xc
     yinit = ys_DEM - yc
 
@@ -109,6 +106,8 @@ def main():
 
     
     current_dir = os.getcwd()
+    current_dir_name = current_dir.split('/')[-1]
+
     working_dir = current_dir+'/VTK/lagrangian/cloud'
     files = os.listdir(working_dir)
     n_files = len(files)
@@ -209,8 +208,8 @@ def main():
         for val in zz_linspace:
             ticks.append(str(val))
     
-        im_ratio = Xinit.shape[0] / Xinit.shape[1]
-           
+        im_ratio = domain_size_y / domain_size_x
+                   
         levels = np.linspace(min_arr, max_arr, 11)
         label_str = 'Probabilty [0;1]'
 
@@ -221,6 +220,10 @@ def main():
     
         p1 = ax.imshow(np.flipud(zz),cmap=cmap, interpolation='nearest', 
                        extent=extent_density, alpha=0.65)
+
+        ax.set_xlim(-0.5*domain_size_x, 0.5*domain_size_x)
+        ax.set_ylim(-0.5*domain_size_y, 0.5*domain_size_y)
+
         clb = plt.colorbar(p1)
 
         label_str = 'Log of % ballistic'
@@ -238,7 +241,7 @@ def main():
       
         plt.title(title)
       
-        png_file = DEM_file.replace('.asc', string+'ballistic.png')
+        png_file = current_dir_name+string+'ballistic.png'
              
         plt.savefig(png_file, dpi=200)
         plt.close(fig)
@@ -247,7 +250,7 @@ def main():
  
         zz[zz==-np.inf] = nd   		
 
-        asc_file = DEM_file.replace('.asc', string+'ballistic.asc')
+        asc_file = current_dir_name+string+'ballistic.asc'
     
         header = "ncols     %s\n" % xx.shape[1]
         header += "nrows    %s\n" % xx.shape[0]

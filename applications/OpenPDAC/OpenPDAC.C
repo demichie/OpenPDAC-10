@@ -78,35 +78,29 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
     
-    scalar startTime_ = runTime.startTime().value();
-    scalar deltaT = runTime.deltaT().value();
+    if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
+    {
+        scalar startTime_ = runTime.startTime().value();
+        scalar deltaT = runTime.deltaT().value();
 
-    // set small value for deltaT to evolve particles    
-    runTime.setDeltaT 
-                 ( 
-                    1.e-5*deltaT
-                 );
-    // increase time iterator            
-    runTime++;
+        // set small value for deltaT to evolve particles    
+        runTime.setDeltaT(1.e-5*deltaT);
+
+        // increase time iterator            
+        runTime++;
     
-    // evolve particle cloud
-    clouds.evolve();
+        // evolve particle cloud
+        clouds.evolve();
 
-     // restore startTime
-    runTime.setTime
-                ( 
-                    startTime_,
-                    startTime_
-                );
+        // restore startTime
+        runTime.setTime(startTime_,startTime_);
                 
-    // restore deltaT            
-    runTime.setDeltaT 
-                 ( 
-                    deltaT
-                 );
+        // restore deltaT            
+        runTime.setDeltaT(deltaT);
 
-    // write everything (including lagrangian)
-    runTime.writeNow();
+        // write everything (including lagrangian)
+        runTime.writeNow();
+    }    
 
     while (pimple.run(runTime))
     

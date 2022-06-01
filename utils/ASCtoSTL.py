@@ -133,10 +133,15 @@ print('ymin,ymax',ymin,ymax)
 Xinit, Yinit = np.meshgrid(xinit, yinit)
 Zinit = DEM
 
-xmin = np.maximum(xmin,-0.5 * domain_size_x)
-xmax = np.minimum(xmax,0.5 * domain_size_x)
-ymin = np.maximum(ymin,-0.5 * domain_size_y)
-ymax = np.minimum(ymax,0.5 * domain_size_y)
+if 'domain_size_x' in locals(): 
+
+    xmin = np.maximum(xmin,-0.5 * domain_size_x)
+    xmax = np.minimum(xmax,0.5 * domain_size_x)
+
+if 'domain_size_y' in locals(): 
+
+    ymin = np.maximum(ymin,-0.5 * domain_size_y)
+    ymax = np.minimum(ymax,0.5 * domain_size_y)
 
 if saveDicts_flag:
 

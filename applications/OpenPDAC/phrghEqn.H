@@ -209,7 +209,7 @@ if (pimple.dict().lookupOrDefault<bool>("hydrostaticInitialisation", false))
             pimple.dict().lookupOrDefault<label>("nHydrostaticCorrectors", 5)
         );
             
-        for (label i=0; i<nCorr; i++)
+        for (label i=0; i<0; i++)
         //for (label i=0; i<nCorr; i++)
         { 
             p = ph;

@@ -15,7 +15,12 @@ from matplotlib.colors import LightSource
 from matplotlib.colors import BoundaryNorm
 import matplotlib.ticker as ticker
 
-toll = 10
+# Determine impact time for all clasts as the first time index
+# such that velocity (in norm) falls below toll tolerance and, 
+# in the previous time step, velocity along z-axis is negative. 
+toll = 1.0
+
+# Post-processing grid resolution [m]
 step_dens = 50.0
     
 
@@ -55,7 +60,7 @@ def readerVTK(filename):
     return origId , d, U, position, rho
 
 
-def readASC(DEM_file,xc,yc):
+def readASC(DEM_file):
 
     print('Reading DEM file: ' + DEM_file)
     # Parse the topography header
@@ -76,8 +81,8 @@ def readASC(DEM_file,xc,yc):
     DEM = np.flipud(DEM)
     DEM[DEM == nd] = 0.0
 
-    xinit = xs_DEM - xc
-    yinit = ys_DEM - yc
+    xinit = xs_DEM
+    yinit = ys_DEM
 
     xmin = np.amin(xinit)
     xmax = np.amax(xinit)
@@ -97,9 +102,12 @@ def readASC(DEM_file,xc,yc):
 
 def main():
 
+    foamCommand = 'foamToVTK -fields "()" -useTimeName'
+    os.system(foamCommand)
+
     print('DEM_file',DEM_file)
     filename = './preprocessing/'+DEM_file
-    Xinit,Yinit,Zinit,cell,extent = readASC(filename,xc,yc)
+    Xinit,Yinit,Zinit,cell,extent = readASC(filename)
  
  
     ls = LightSource(azdeg=45, altdeg=45)
@@ -129,13 +137,13 @@ def main():
     diams = np.unique(d)
     
     nballistics = d.shape[0]
-    n_times = n_files-1
+    n_times = n_files
     print('nballistics',nballistics)
     A = np.zeros((nballistics,3,n_times))
     B = np.zeros((nballistics,3,n_times))
     matr = np.zeros((n_times,8,nballistics))
     
-    for i,filename in enumerate(sorted_files[-1:]):
+    for i,filename in enumerate(sorted_files[:]):
     
         full_filename = working_dir+'/'+filename
         print(full_filename)
@@ -216,17 +224,25 @@ def main():
     xy = np.vstack([x,y])
     kde = gaussian_kde(xy,bw_method=1.0)
     z = gaussian_kde(xy)(xy)
-    step_dens = 50.0
-    x_density = np.arange(np.amin(Xinit),np.amax(Xinit),step=step_dens)
-    y_density = np.arange(np.amin(Yinit),np.amax(Yinit),step=step_dens)
-
-    x_dens_min = xc+np.amin(x_density)
-    x_dens_max = xc+np.amax(x_density)
-    y_dens_min = yc+np.amin(y_density)
-    y_dens_max = yc+np.amax(y_density)
     
+    xmin = np.amin(Xinit) - 0.5*cell   
+    xmax = np.amax(Xinit) + 0.5*cell
 
+    ymin = np.amin(Yinit) - 0.5*cell    
+    ymax = np.amax(Yinit) + 0.5*cell    
+    
+    step_dens = 50.0
+    x_density = np.arange(xmin,xmax,step=step_dens)
+    y_density = np.arange(ymin,ymax,step=step_dens)
+
+    x_dens_min = np.amin(x_density)
+    x_dens_max = np.amax(x_density)
+    y_dens_min = np.amin(y_density)
+    y_dens_max = np.amax(y_density)
+    
     extent_density = x_dens_min , x_dens_max , y_dens_min , y_dens_max
+    
+    print('extent_density',extent_density)
 
     xx,yy = np.meshgrid(x_density,y_density)
     
@@ -269,8 +285,20 @@ def main():
         ticks = []
         for val in zz_linspace:
             ticks.append(str(val))
+            
+        if 'domain_size_x' in locals(): 
+
+            # values for blockMeshDict
+            xmin = np.maximum(xmin,xc-0.5 * domain_size_x)
+            xmax = np.minimum(xmax,xc+0.5 * domain_size_x)
+
+        if 'domain_size_y' in locals(): 
+
+            # values for blockMeshDict
+            ymin = np.maximum(ymin,yc-0.5 * domain_size_y)
+            ymax = np.minimum(ymax,yc+0.5 * domain_size_y)    
     
-        im_ratio = domain_size_y / domain_size_x
+        im_ratio = (ymax-ymin) / (xmax-xmin)
                    
         levels = np.linspace(min_arr, max_arr, 11)
         label_str = 'Probabilty [0;1]'
@@ -283,8 +311,8 @@ def main():
         p1 = ax.imshow(np.flipud(zz),cmap=cmap, interpolation='nearest', 
                        extent=extent_density, alpha=0.65)
 
-        ax.set_xlim(-0.5*domain_size_x, 0.5*domain_size_x)
-        ax.set_ylim(-0.5*domain_size_y, 0.5*domain_size_y)
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
 
         clb = plt.colorbar(p1)
 

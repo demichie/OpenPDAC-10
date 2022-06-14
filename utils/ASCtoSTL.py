@@ -155,10 +155,10 @@ Zinit = DEM
 
  
 # values for blockMeshDict
-xmin = np.amin(xinit)+offset_mesh
-xmax = np.amax(xinit)-offset_mesh
-ymin = np.amin(yinit)+offset_mesh
-ymax = np.amax(yinit)-offset_mesh
+xmin = np.amin(xinit) - 0.5*cell + offset_mesh
+xmax = np.amax(xinit) + 0.5*cell - offset_mesh
+ymin = np.amin(yinit) - 0.5*cell + offset_mesh
+ymax = np.amax(yinit) + 0.5*cell - offset_mesh
 
 if 'domain_size_x' in locals(): 
 

@@ -15,6 +15,34 @@ import pandas as pd
 from ASCtoSTLdict import *
 
 
+def saveAsc(x,y,h,DEM_file):
+
+    
+    dx = x[1]-x[0]
+    xmin = x[0] 
+    
+    dy = y[1]-y[0]
+    ymin = y[0] 
+
+    # Save initial topography on ascii raster file
+    header = "ncols     %s\n" % h.shape[1]
+    header += "nrows    %s\n" % h.shape[0]
+    header += "xllcenter " + str(xmin) + "\n"
+    header += "yllcenter " + str(ymin) + "\n"
+    header += "cellsize " + str(dx) + "\n"
+    header += "NODATA_value -9999\n"
+
+    resampled_DEM = DEM_file.replace('.asc','_resampled.asc')
+
+    print('')
+    print('Saving resample DEM:',resampled_DEM)
+
+    np.savetxt(resampled_DEM,
+               np.flipud(h),
+               header=header,
+               fmt='%1.5f',
+               comments='')
+
 
 def saveDicts(xmin,xmax,ymin,ymax,Zinit,delta_mesh,path):
 
@@ -105,6 +133,7 @@ cols, rows, lx, ly, cell, nd = values
 cols = int(cols)
 rows = int(rows)
 
+# (x,y) coordinates of pixel centers
 xs_DEM = lx + 0.5 * cell + np.linspace(0, (cols - 1) * cell, cols)
 ys_DEM = ly + 0.5 * cell + np.linspace(0, (rows - 1) * cell, rows)
 
@@ -114,47 +143,52 @@ DEM = pd.read_table(DEM_file, delim_whitespace=True, header=None,
 DEM = np.flipud(DEM)
 DEM[DEM == nd] = 0.0
 
-xinit = np.linspace(0, (cols - 1) * cell, cols) - xc
-yinit = np.linspace(0, (rows - 1) * cell, rows) - yc
-
+# relative coordinates of pixel centers (origin is in xc,yc) 
+# these are 1d arrays
 xinit = xs_DEM - xc
 yinit = ys_DEM - yc
+
+# 2d arrays for relative coordinates of pixel centers (origin is in xc,yc) 
+Xinit, Yinit = np.meshgrid(xinit, yinit)
+
+Zinit = DEM
+
  
+# values for blockMeshDict
 xmin = np.amin(xinit)+offset_mesh
 xmax = np.amax(xinit)-offset_mesh
-
-print('xmin,xmax',xmin,xmax)
-
 ymin = np.amin(yinit)+offset_mesh
 ymax = np.amax(yinit)-offset_mesh
 
-print('ymin,ymax',ymin,ymax)
-
-Xinit, Yinit = np.meshgrid(xinit, yinit)
-Zinit = DEM
-
 if 'domain_size_x' in locals(): 
 
+    # values for blockMeshDict
     xmin = np.maximum(xmin,-0.5 * domain_size_x)
     xmax = np.minimum(xmax,0.5 * domain_size_x)
 
 if 'domain_size_y' in locals(): 
 
+    # values for blockMeshDict
     ymin = np.maximum(ymin,-0.5 * domain_size_y)
     ymax = np.minimum(ymax,0.5 * domain_size_y)
+
+print('blockMeshDict size')
+print('xmin,xmax',xmin,xmax)
+print('ymin,ymax',ymin,ymax)
 
 if saveDicts_flag:
 
     saveDicts(xmin,xmax,ymin,ymax,Zinit,delta_mesh,path)
 
-# translate the linestring (relative reference system with (lx,ly)=(0,0))
+# translate the crater medial axis (relative reference system with (xc,yc)=(0,0))
 line = translate(line, -xc, -yc)
 
+# compute the bounding box
 bb = line.bounds
 
 print('bb',bb)
 
-# interpolate with values from original fine grid
+# create interpolation function with values from original fine grid
 f = interpolate.interp2d(xinit, yinit, Zinit, kind='linear')
 
 # coarsening of the original grid
@@ -164,6 +198,9 @@ yinit = yinit[::resample]
 Xinit = Xinit[::resample, ::resample]
 Yinit = Yinit[::resample, ::resample]
 Zinit = Zinit[::resample, ::resample]
+
+# save the resampled DEM as ESRII ascii file
+saveAsc(xinit+xc,yinit+yc,Zinit,DEM_file)
 
 # list of points of DEM for the refined nested grid
 x_check = []

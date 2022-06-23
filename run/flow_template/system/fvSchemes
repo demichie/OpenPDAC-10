@@ -43,11 +43,14 @@ divSchemes
 
     "div\(alphaRhoPhi.*,(k|epsilon).*\)"  Gauss limitedLinear 1;
 
+    "div\(alphaRhoPhi.*,Yi\)"             Gauss limitedLinear 1;
 
-    div((((alpha.air*thermo:rho.air)*nuEff.air)*dev2(T(grad(U.air))))) Gauss linear;
+    div((((alpha.gas*thermo:rho.gas)*nuEff.gas)*dev2(T(grad(U.gas))))) Gauss linear;
     // "div(phiUh,ph)"                 Gauss upwind;
     "div(phiUh,ph)"                 Gauss linearUpwind grad(rho);
 
+    div(phiUh,Th)      Gauss upwind;
+    
     div((((thermo:rho.particles*nut.particles)*dev2(T(grad(U.particles))))+(((thermo:rho.particles*lambda.particles)*div(phi.particles))*I)))  Gauss linear;
     
     "div\(\(\(\(alpha.*\*thermo:rho.*\)*nuEff.*\)\*dev2\(T\(grad\(U.*\)\)\)\)\)" Gauss linear;

@@ -16,23 +16,23 @@ FoamFile
 
 application     OpenPDAC;
 
-startFrom       latestTime;
+startFrom       startTime;
 
 startTime       0;
 
 stopAt          endTime;
 
-endTime         50.0;
+endTime         0.0;
 
 deltaT          0.001;
 
 writeControl    adjustableRunTime;
 
-writeInterval   0.25;
+writeInterval   0.001;
 
 purgeWrite      0;
 
-writeFormat     binary;
+writeFormat     ascii;
 
 writePrecision  12;
 

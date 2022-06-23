@@ -69,13 +69,19 @@ aspectRatio
 
 drag
 (
-    (particles in air)
+    (particles in gas)
     {
-        type            GidaspowErgunWenYu;
-        residualRe      1e-3;
-        swarmCorrection
+        type timeScaleFiltered;
+        minRelaxTime 1e-5;
+   
+        dragModel 
         {
-            type        none;
+            type            GidaspowErgunWenYu;
+            residualRe      1e-3;
+            swarmCorrection
+            {
+                type        none;
+            }
         }
     }
 );

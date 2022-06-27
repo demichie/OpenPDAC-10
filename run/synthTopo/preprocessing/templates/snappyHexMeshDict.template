@@ -38,11 +38,15 @@ geometry
         type triSurfaceMesh;
         name crater;
     }
+    
+    /*
     sphere.stl
       {
         type triSurfaceMesh;
         name sphere;
       }
+    */  
+      
 
     /*refinementBox
     {
@@ -164,6 +168,8 @@ castellatedMeshControls
     //   needs to be closed for this to be possible.
     // - outside. Same but cells outside.
 
+
+    /*
     refinementRegions
     {
         sphere
@@ -172,6 +178,7 @@ castellatedMeshControls
             levels ((1E15 4));
         }
     }
+    */
 
 
     // Mesh selection

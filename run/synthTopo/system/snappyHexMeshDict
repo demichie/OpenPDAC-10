@@ -38,11 +38,6 @@ surface_in.stl
 type triSurfaceMesh;
 name crater;
 }
-sphere.stl
-{
-type triSurfaceMesh;
-name sphere;
-}
 
 /*refinementBox
 {
@@ -164,6 +159,7 @@ resolveFeatureAngle 40;
 //   needs to be closed for this to be possible.
 // - outside. Same but cells outside.
 
+/*
 refinementRegions
 {
 sphere
@@ -172,7 +168,7 @@ mode inside;
 levels ((1E15 4));
 }
 }
-
+*/
 
 // Mesh selection
 // ~~~~~~~~~~~~~~

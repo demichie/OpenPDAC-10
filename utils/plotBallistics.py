@@ -189,9 +189,10 @@ def main():
     df.to_csv("velocities.csv", header=C,index=False) 
 
     # Determine the mass of each block 
-    r = d/2 
-    V = 4/3*(np.pi)*(r**3) 
+    r = 0.5*d 
+    V = 4.0/3.0*(np.pi)*(r**3) 
     m = rho*V 
+    
     K = np.zeros((nballistics,1)) 
 
     mat1 = np.zeros((nballistics, 9))
@@ -200,7 +201,6 @@ def main():
         mat1[s,0] = s
         if t_impact[s] != 0:
             
-            K[s] = 0.5*m[s]*(mat1[s,2]**2) 
             
             mat1[s,1] = d[s]
             mat1[s,2] = rho[s]
@@ -209,6 +209,8 @@ def main():
             mat1[s,5] = matr[t_impact[s],2,s]
             mat1[s,6] = matr[t_impact[s],3,s]
             mat1[s,7] = matr[t_impact[s]-1,-1,s]
+            
+            K[s] = 0.5*m[s]*(mat1[s,7]**2) 
             mat1[s,8] = K[s]
             
     C = ['index','diameter [m]','density [kg/m3]','[impact time [s]','x [m]','y [m]','z [m]','impact velocity [m/s]','landing energy [J]']

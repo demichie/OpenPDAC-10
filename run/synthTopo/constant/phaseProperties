@@ -37,12 +37,7 @@ particles
 gas
 {
     type          multiComponentPhaseModel; //purePhaseModel;
-    diameterModel isothermal; //constant;
-    isothermalCoeffs
-    {
-        d0               3e-3;
-        p0               1e5;
-    }
+    diameterModel none;
 
     residualAlpha   1e-06;
 }
@@ -52,25 +47,23 @@ blending
     default
     {
         type            none;
-        continuousPhase gas;
+        phase gas;
     }
 }
 
 surfaceTension
-(
-    (particles and gas)
+{
+    particles_gas
     {
         type            constant;
         sigma           0;
     }
-);
+}
 
-aspectRatio
-();
 
 drag
-(
-    (particles in gas)
+{
+    particles_dispersedIn_gas
     {
         type timeScaleFiltered;
         minRelaxTime 1e-5;
@@ -79,45 +72,41 @@ drag
         {
             type            GidaspowErgunWenYu;
             residualRe      1e-3;
-            swarmCorrection
-            {
-                type        none;
-            }
         }
     }
-);
+}
 
 virtualMass
-(
-    (particles in gas)
+{
+    particles_dispersedIn_gas
     {
         type            constantCoefficient;
         Cvm             0.5;
     }
-);
+}
 
 heatTransfer
-(
-    (particles in gas)
+{
+    particles_dispersedIn_gas
     {
         type            RanzMarshall;
         residualAlpha   1e-3;
     }
-);
+}
 
 phaseTransfer
-();
+{}
 
 lift
-();
+{}
 
 wallLubrication
-();
+{}
 
 turbulentDispersion
-();
+{}
 
 interfaceCompression
-();
+{}
 
 // ************************************************************************* //

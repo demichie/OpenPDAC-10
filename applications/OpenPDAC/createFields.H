@@ -62,7 +62,7 @@ volScalarField ph_rgh
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh
     );
@@ -140,8 +140,8 @@ if (p_rgh.needReference() && fluid.incompressible())
     );
 }
 
-
-mesh.setFluxRequired(p_rgh.name());
+p_rgh = p - fluid.rho()*gh;
+mesh.schemes().setFluxRequired(p_rgh.name());
 
 label carrierIdx;
 

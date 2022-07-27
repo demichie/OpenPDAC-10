@@ -34,10 +34,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "dynamicFvMesh.H"
 #include "phaseSystem.H"
-//#include "phaseCompressibleMomentumTransportModel.H"
-#include "phaseDynamicMomentumTransportModel.H"
+#include "phaseCompressibleMomentumTransportModel.H"
 #include "pimpleControl.H"
 #include "pressureReference.H"
 #include "localEulerDdtScheme.H"
@@ -52,7 +50,7 @@ int main(int argc, char *argv[])
 
     #include "setRootCaseLists.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
+    #include "createMesh.H"
     #include "createDyMControls.H"
     #include "createFields.H"
     #include "createFieldRefs.H"
@@ -125,9 +123,31 @@ int main(int argc, char *argv[])
             #include "CourantNo.H"
             #include "setDeltaT.H"
         }
+
+        fvModels.preUpdateMesh();
+
+        // Store divU from the previous mesh so that it can be
+        // mapped and used in correctPhi to ensure the corrected phi
+        // has the same divergence
+        tmp<volScalarField> divU;
+
+        if (correctPhi && mesh.topoChanged())
+        {
+            // Construct and register divU for mapping
+            divU = new volScalarField
+            (
+                "divU0",
+                fvc::div
+                (
+                    fvc::absolute(phi, fluid.movingPhases()[0].U())
+                )
+            );
+        }
+
+        mesh.update();
         
         runTime++;
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        Info<< "Time = " << runTime.userTimeName() << nl << endl;
 
 		//clouds.storeGlobalPositions();
 
@@ -161,15 +181,7 @@ int main(int argc, char *argv[])
             {
                 if (pimple.firstPimpleIter() || moveMeshOuterCorrectors)
                 {
-                    // Store divU from the previous mesh so that it can be
-                    // mapped and used in correctPhi to ensure the corrected phi
-                    // has the same divergence
-                    tmp<volScalarField> divU;
-
-                    if
-                    (
-                        correctPhi
-                    )
+                    if (correctPhi && !divU.valid())
                     {
                         // Construct and register divU for mapping
                         divU = new volScalarField
@@ -182,9 +194,8 @@ int main(int argc, char *argv[])
                         );
                     }
 
-                    fvModels.preUpdateMesh();
-
-                    mesh.update();
+                    // Move the mesh
+                    mesh.move();
 
                     if (mesh.changing())
                     {
@@ -209,6 +220,8 @@ int main(int argc, char *argv[])
                             #include "meshCourantNo.H"
                         }
                     }
+
+                    divU.clear();
                 }
 
                 if (pimple.models())

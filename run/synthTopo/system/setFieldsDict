@@ -29,7 +29,7 @@ regions
 (
 	zoneToCell
 	{
-		name "conduit";
+		zone "conduit";
 		fieldValues
 		(
 			volScalarFieldValue alpha.gas 0.7

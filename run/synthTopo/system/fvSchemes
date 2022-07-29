@@ -51,9 +51,9 @@ divSchemes
 
     div(phiUh,Th)      Gauss upwind;
     
-    div((((thermo:rho.particles*nut.particles)*dev2(T(grad(U.particles))))+(((thermo:rho.particles*lambda.particles)*div(phi.particles))*I)))  Gauss linear;
-    
     "div\(\(\(\(alpha.*\*thermo:rho.*\)*nuEff.*\)\*dev2\(T\(grad\(U.*\)\)\)\)\)" Gauss linear;
+
+    divDevTau(U.particles)          Gauss linear;
 
 }
 

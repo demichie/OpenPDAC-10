@@ -1,15 +1,23 @@
-# module load openFOAM-9
-# source $FOAM_BASHRC
+module load openFOAM-10
+source $FOAM_BASHRC
 
 foamCleanCase
+
+cd preprocessing
+python createSTL.py
+cd ..
+
 
 blockMesh 
 checkMesh -allTopology -allGeometry
 
 snappyHexMesh -overwrite
 extrudeMesh
-changeDictionary 
+changeDictionary
 
+# sbatch MPIJob_snappy.script
+# extrudeMesh
+# changeDictionary
 
 rm -rf 0
 cp -r org.0 0

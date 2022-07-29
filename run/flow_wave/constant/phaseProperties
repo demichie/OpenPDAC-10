@@ -50,8 +50,8 @@ blending
 {
     default
     {
-        type            none;
-        continuousPhase air;
+        type            continuous;
+        phase air;
     }
 }
 
@@ -69,22 +69,22 @@ aspectRatio
 
 drag
 (
-    (particles in gas)
-    {
-        type timeScaleFiltered;
-        minRelaxTime 1e-5;
+ (particles in air)
+ {
+   type timeScaleFiltered;
+   minRelaxTime 1e-5;
    
         dragModel 
-        {
+	  {
             type            GidaspowErgunWenYu;
             residualRe      1e-3;
             swarmCorrection
-            {
+	      {
                 type        none;
-            }
-        }
-    }
-);
+	      }
+	  }
+ }
+ );
 
 virtualMass
 (

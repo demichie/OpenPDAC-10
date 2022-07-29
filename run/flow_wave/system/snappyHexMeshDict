@@ -20,7 +20,7 @@ FoamFile
 // Which of the steps to run
 castellatedMesh on;
 snap            on;
-addLayers       off;
+addLayers       on;
 
 
 // Geometry. Definition of all surfaces. All surfaces are of class
@@ -34,7 +34,7 @@ geometry
     regionSTL2
     {
         type triSurfaceMesh;
-        file "regionSTL3.stl";
+        file "combined.stl";
 	regions
 	{
 
@@ -70,12 +70,12 @@ castellatedMeshControls
     // few cells. This setting will cause refinement to stop if <= minimumRefine
     // are selected for refinement. Note: it will at least do one iteration
     // (unless the number of cells to refine is 0)
-    minRefinementCells 0;
+    minRefinementCells 10;
 
     // Number of buffer layers between different levels.
     // 1 means normal 2:1 refinement restriction, larger means slower
     // refinement.
-    nCellsBetweenLevels 8;
+    nCellsBetweenLevels 4;
 
 
 

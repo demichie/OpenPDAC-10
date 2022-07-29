@@ -10,25 +10,34 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    object      changeDictionaryDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 8;
-
-method          scotch;
-
-hierarchicalCoeffs
+boundary
 {
-    n               ( 8 1 1 );
-    delta           0.001;
-    order           xyz;
+    front 
+    {
+        type            empty;
+        inGroups           1 (frontAndBack);
+    }
+    back
+    {
+        type            empty;
+        inGroups           1 (frontAndBack);
+    }
+    axis
+    {
+        inGroups	    1 (outOrIn);
+    }    
+    top
+    {
+        inGroups	    1 (outOrIn);
+    }
+    side	
+    {
+        inGroups	    1 (outOrIn);
+    }
 }
-
-distributed     no;
-
-roots           ( );
-
 
 // ************************************************************************* //

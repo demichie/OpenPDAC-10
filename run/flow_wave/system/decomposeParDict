@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.0                                 |
+|  \\    /   O peration     | Version:  3.0.x                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,32 +10,33 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      decomposeParDict;
 }
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-boundary
+numberOfSubdomains 20;
+
+//method          hierarchical;
+method          scotch;
+
+simpleCoeffs
 {
-    front 
-    {
-        inGroups           1 (frontAndBack);
-    }
-    back
-    {
-        inGroups           1 (frontAndBack);
-    }
-    axis
-    {
-        inGroups	    1 (outOrIn);
-    }    
-    top
-    {
-        inGroups	    1 (outOrIn);
-    }
-    side	
-    {
-        inGroups	    1 (outOrIn);
-    }
+    n               (4 1 1);
+    delta           0.001;
 }
+
+hierarchicalCoeffs
+{
+    n               (3 2 1);
+    delta           0.001;
+    order           xyz;
+}
+
+manualCoeffs
+{
+    dataFile        "cellDecomposition";
+}
+
 
 // ************************************************************************* //

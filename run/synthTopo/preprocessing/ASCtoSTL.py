@@ -397,6 +397,16 @@ for i, f in enumerate(faces):
     for j in range(3):
         surface.vectors[i][j] = vertices[f[j], :]
 
+output_dir = '../constant/triSurface'
+# Check whether the specified output path exists or not
+isExist = os.path.exists(output_dir)
+
+if not isExist:
+
+    # Create a new directory because it does not exist
+    os.makedirs(output_dir)
+    print('The new directory ' + output_dir + ' is created!')
+
 surface.save('../constant/triSurface/surface.stl')
 
 # Create the inside mesh
